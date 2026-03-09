@@ -1,4 +1,4 @@
-rootProject.name = "Lumina"
+rootProject.name = "LuminaRoot"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -34,3 +34,4 @@ plugins {
 
 include(":composeApp")
 include(":androidapp")
+include(":lumina")
