@@ -14,7 +14,7 @@ kotlin {
     jvmToolchain(21)
 
     androidLibrary {
-        namespace = "com.hrm.lumina"
+        namespace = "com.hrm.lumina.composeapp"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
         androidResources.enable = true
@@ -65,6 +65,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(project(":lumina"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

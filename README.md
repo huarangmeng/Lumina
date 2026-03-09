@@ -1,76 +1,24 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
+# Lumina
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+**Lumina** 是一个基于 Kotlin Multiplatform + Compose Multiplatform 的 **3D 粒子效果库**，支持 Android、iOS、Web、Desktop (JVM) 多平台。
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+## ✨ 功能特性
 
-### Build and Run Android Application
+- 🎇 **3D 粒子渲染** — 基于 Compose Canvas 实现高性能 3D 粒子系统，支持深度感知、透视投影与粒子生命周期管理
+- 👆 **跟手交互** — 粒子效果实时响应触摸/鼠标输入，支持拖拽、滑动、多点触控等手势驱动粒子运动
+- 🎬 **视频行为反馈** — 解析视频帧的运动信息（光流/像素差分），将视频中的动态区域映射为粒子爆发、扩散等视觉反馈效果
+- 🌐 **跨平台** — 单一代码库，覆盖 Android / iOS / Web (JS & Wasm) / Desktop (JVM)
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+## 📦 模块结构
 
-### Build and Run Desktop (JVM) Application
-
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
-
-### Build and Run Web Application
-
-To build and run the development version of the web app, use the run configuration from the run widget
-in your IDE's toolbar or run it directly from the terminal:
-- for the Wasm target (faster, modern browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-- for the JS target (slower, supports older browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:jsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:jsBrowserDevelopmentRun
-    ```
-
-### Build and Run iOS Application
-
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
-
----
-
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
-
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+```
+Lumina/
+├── lumina/          # 核心库模块（发布为 KMP 库）
+│   ├── commonMain   # 跨平台粒子系统核心逻辑
+│   ├── androidMain  # Android 平台适配（触摸事件、Camera/视频解码）
+│   ├── iosMain      # iOS 平台适配
+│   ├── jvmMain      # Desktop 平台适配
+│   ├── jsMain       # JS Web 平台适配
+│   └── wasmJsMain   # Wasm Web 平台适配
+└── composeApp/      # 演示应用（展示各平台粒子效果）
+```
