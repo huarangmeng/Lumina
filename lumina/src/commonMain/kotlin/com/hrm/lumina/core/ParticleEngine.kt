@@ -28,6 +28,10 @@ class ParticleEngine(val config: ParticleConfig) {
     /** 螺旋发射角度 */
     private var spiralAngle: Float = 0f
 
+    /** 发射原点（3D 空间坐标），默认在中心，触摸时跟随手指 */
+    var emitOriginX: Float = 0f
+    var emitOriginY: Float = 0f
+
     /**
      * 每帧调用，推进粒子系统状态。
      * @param deltaMs 距上一帧的时间差（毫秒）
@@ -93,6 +97,8 @@ class ParticleEngine(val config: ParticleConfig) {
         emitAccumulator = 0f
         gridIndex = 0
         spiralAngle = 0f
+        emitOriginX = 0f
+        emitOriginY = 0f
     }
 
     // ── 私有：发射单个粒子 ──────────────────────────────────────────────────
@@ -138,8 +144,8 @@ class ParticleEngine(val config: ParticleConfig) {
         val theta = Random.nextFloat() * 2f * PI.toFloat()
         val phi = Random.nextFloat() * PI.toFloat()
         val r = Random.nextFloat() * config.emitRadius
-        p.x = r * sin(phi) * cos(theta)
-        p.y = r * sin(phi) * sin(theta)
+        p.x = emitOriginX + r * sin(phi) * cos(theta)
+        p.y = emitOriginY + r * sin(phi) * sin(theta)
         p.z = r * cos(phi)
 
         val speed = config.speedRange.start +
@@ -165,8 +171,8 @@ class ParticleEngine(val config: ParticleConfig) {
 
         // 归一化到 [-emitRadius, emitRadius]
         val r = config.emitRadius
-        p.x = (col.toFloat() / (cols - 1).coerceAtLeast(1) * 2f - 1f) * r
-        p.y = (row.toFloat() / (rows - 1).coerceAtLeast(1) * 2f - 1f) * r
+        p.x = emitOriginX + (col.toFloat() / (cols - 1).coerceAtLeast(1) * 2f - 1f) * r
+        p.y = emitOriginY + (row.toFloat() / (rows - 1).coerceAtLeast(1) * 2f - 1f) * r
         p.z = (Random.nextFloat() - 0.5f) * r * 0.2f
 
         // 速度：轻微随机扰动 + 向外
@@ -181,8 +187,8 @@ class ParticleEngine(val config: ParticleConfig) {
     private fun emitRing(p: Particle) {
         val angle = Random.nextFloat() * 2f * PI.toFloat()
         val r = config.emitRadius
-        p.x = cos(angle) * r
-        p.y = sin(angle) * r
+        p.x = emitOriginX + cos(angle) * r
+        p.y = emitOriginY + sin(angle) * r
         p.z = (Random.nextFloat() - 0.5f) * r * 0.1f
 
         val speed = config.speedRange.start +
@@ -197,8 +203,8 @@ class ParticleEngine(val config: ParticleConfig) {
     private fun emitSpiral(p: Particle) {
         spiralAngle += 0.3f
         val r = config.emitRadius * (0.1f + (spiralAngle % (2f * PI.toFloat())) / (2f * PI.toFloat()) * 0.9f)
-        p.x = cos(spiralAngle) * r
-        p.y = sin(spiralAngle) * r
+        p.x = emitOriginX + cos(spiralAngle) * r
+        p.y = emitOriginY + sin(spiralAngle) * r
         p.z = (Random.nextFloat() - 0.5f) * config.emitRadius * 0.2f
 
         val speed = config.speedRange.start +

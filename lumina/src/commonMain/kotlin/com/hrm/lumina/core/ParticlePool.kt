@@ -20,9 +20,11 @@ class ParticlePool(val capacity: Int) {
 
     /**
      * 从池中获取一个空闲粒子并标记为使用中。
-     * 若池已满则返回 null。
+     * 若池已满，则强制回收生命值剩余最少（最老）的粒子并复用，
+     * 确保发射原点移动后新位置能持续发射粒子。
      */
     fun acquire(): Particle? {
+        // 优先找空闲槽
         for (i in 0 until capacity) {
             if (!inUse[i]) {
                 inUse[i] = true
@@ -31,7 +33,19 @@ class ParticlePool(val capacity: Int) {
                 return pool[i]
             }
         }
-        return null
+        // 池满：强制回收生命值剩余最少的粒子
+        var minLife = Float.MAX_VALUE
+        var minIdx = -1
+        for (i in 0 until capacity) {
+            if (pool[i].life < minLife) {
+                minLife = pool[i].life
+                minIdx = i
+            }
+        }
+        if (minIdx < 0) return null
+        pool[minIdx].reset()
+        // activeCount 不变（回收一个再占用一个）
+        return pool[minIdx]
     }
 
     /**
