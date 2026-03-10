@@ -17,11 +17,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hrm.lumina.core.EmitMode
+import com.hrm.lumina.core.ImagePixelData
 import com.hrm.lumina.core.ParticleConfig
 import com.hrm.lumina.core.ParticleShape
 import com.hrm.lumina.core.luminaConfig
 import com.hrm.lumina.render.ParticleBlendMode
+import com.hrm.lumina.ui.ImageParticleView
 import com.hrm.lumina.ui.LuminaParticleView
+import luminaroot.composeapp.generated.resources.Res
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** 粒子预设数据类 */
 data class ParticlePreset(
@@ -179,55 +184,183 @@ val presets = listOf(
     ),
 )
 
+// ── 主 App ────────────────────────────────────────────────────────────────
+
 @Composable
 fun App() {
     MaterialTheme {
+        // 0 = 图片粒子化，1~5 = 原有预设
         var selectedIndex by remember { mutableStateOf(0) }
-        val preset = presets[selectedIndex]
 
-        val bgColor by animateColorAsState(
-            targetValue = preset.background,
-            animationSpec = tween(700),
-            label = "bg"
-        )
+        // 图片粒子化模式
+        if (selectedIndex == 0) {
+            ImageParticleScreen(
+                onSwitchToPresets = { selectedIndex = 1 }
+            )
+        } else {
+            ParticlePresetScreen(
+                selectedIndex = selectedIndex - 1,
+                onSelectIndex = { selectedIndex = it + 1 },
+                onSwitchToImage = { selectedIndex = 0 },
+            )
+        }
+    }
+}
 
-        Box(modifier = Modifier.fillMaxSize().background(bgColor)) {
+/** 图片粒子化演示页面 */
+@Composable
+private fun ImageParticleScreen(
+    onSwitchToPresets: () -> Unit,
+) {
+    // 异步加载 test.jpeg 并解码为像素数据
+    var pixelData by remember { mutableStateOf<ImagePixelData?>(null) }
+    LaunchedEffect(Unit) {
+        val bytes = withContext(Dispatchers.Default) {
+            Res.readBytes("files/test.jpeg")
+        }
+        pixelData = withContext(Dispatchers.Default) {
+            loadImagePixelData(bytes)
+        }
+    }
 
-            // 粒子层：key 保证切换预设时重建粒子系统
-            key(selectedIndex) {
-                LuminaParticleView(
-                    config = preset.config,
-                    blendMode = preset.blendMode,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
+    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF000000))) {
 
-            // 预设名称标题
-            Column(
+        // 图片粒子化视图（拖拽旋转视角）
+        pixelData?.let { data ->
+            ImageParticleView(
+                pixelData = data,
+                maxParticles = 15000,
+                particleSize = 0.006f,
+                floatAmplitude = 0.008f,
+                floatSpeed = 0.0005f,
+                depthRange = 1.2f,
+                alphaThreshold = 0.1f,
+                cameraZ = 3.5f,
+                blendMode = ParticleBlendMode.Normal,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+
+        // 标题
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 52.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(text = "🖼️", fontSize = 32.sp)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "图片粒子化",
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 4.sp,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = "拖拽旋转视角",
+                color = Color.White.copy(alpha = 0.45f),
+                fontSize = 12.sp,
+                letterSpacing = 2.sp,
+            )
+        }
+
+        // 底部切换按钮
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 40.dp)
+                .clip(RoundedCornerShape(32.dp))
+                .background(Color.White.copy(alpha = 0.08f))
+                .clickable { onSwitchToPresets() }
+                .padding(horizontal = 24.dp, vertical = 10.dp),
+        ) {
+            Text(
+                text = "✨  切换粒子预设",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 13.sp,
+                letterSpacing = 1.sp,
+            )
+        }
+    }
+}
+
+/** 粒子预设演示页面 */
+@Composable
+private fun ParticlePresetScreen(
+    selectedIndex: Int,
+    onSelectIndex: (Int) -> Unit,
+    onSwitchToImage: () -> Unit,
+) {
+    val preset = presets[selectedIndex]
+
+    val bgColor by animateColorAsState(
+        targetValue = preset.background,
+        animationSpec = tween(700),
+        label = "bg"
+    )
+
+    Box(modifier = Modifier.fillMaxSize().background(bgColor)) {
+
+        // 粒子层：key 保证切换预设时重建粒子系统
+        key(selectedIndex) {
+            LuminaParticleView(
+                config = preset.config,
+                blendMode = preset.blendMode,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+
+        // 预设名称标题
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 52.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = preset.emoji,
+                fontSize = 32.sp,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = preset.name,
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 4.sp,
+            )
+        }
+
+        // 底部切换栏
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // 图片粒子化入口
+            Box(
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 52.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(Color.White.copy(alpha = 0.08f))
+                    .clickable { onSwitchToImage() }
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
             ) {
                 Text(
-                    text = preset.emoji,
-                    fontSize = 32.sp,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = preset.name,
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 4.sp,
+                    text = "🖼️  图片粒子化",
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 12.sp,
+                    letterSpacing = 1.sp,
                 )
             }
 
-            // 底部切换栏
+            Spacer(Modifier.height(10.dp))
+
+            // 预设选择栏
             Row(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 40.dp)
                     .clip(RoundedCornerShape(32.dp))
                     .background(Color.White.copy(alpha = 0.08f))
                     .padding(horizontal = 8.dp, vertical = 6.dp),
@@ -246,7 +379,7 @@ fun App() {
                         modifier = Modifier
                             .clip(RoundedCornerShape(24.dp))
                             .background(itemBg)
-                            .clickable { selectedIndex = index }
+                            .clickable { onSelectIndex(index) }
                             .padding(horizontal = 14.dp, vertical = 8.dp)
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {

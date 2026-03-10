@@ -16,3 +16,14 @@ data class Camera3D(
     val far: Float = 100f,
     val z: Float = 3f,
 )
+
+/**
+ * 可变相机旋转状态，用于手势控制视角。
+ *
+ * @param yaw    绕 Y 轴旋转角度（弧度），左右旋转
+ * @param pitch  绕 X 轴旋转角度（弧度），上下旋转
+ */
+data class CameraRotation(
+    val yaw: Float = 0f,
+    val pitch: Float = 0f,
+)

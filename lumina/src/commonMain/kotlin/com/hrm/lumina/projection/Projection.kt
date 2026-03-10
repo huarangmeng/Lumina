@@ -1,6 +1,8 @@
 package com.hrm.lumina.projection
 
 import androidx.compose.ui.geometry.Offset
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.math.tan
 
 /**
@@ -38,6 +40,44 @@ fun project(
 }
 
 /**
+ * 带相机旋转的 3D → 2D 透视投影。
+ * 先对粒子坐标应用 yaw（绕Y轴）和 pitch（绕X轴）旋转，再做透视投影。
+ */
+fun projectWithRotation(
+    x: Float, y: Float, z: Float,
+    camera: Camera3D,
+    rotation: CameraRotation,
+    canvasW: Float,
+    canvasH: Float,
+): Offset? {
+    // 1. 绕 Y 轴旋转（yaw）
+    val cosYaw = cos(rotation.yaw)
+    val sinYaw = sin(rotation.yaw)
+    val rx1 = x * cosYaw + z * sinYaw
+    val ry1 = y
+    val rz1 = -x * sinYaw + z * cosYaw
+
+    // 2. 绕 X 轴旋转（pitch）
+    val cosPitch = cos(rotation.pitch)
+    val sinPitch = sin(rotation.pitch)
+    val rx2 = rx1
+    val ry2 = ry1 * cosPitch - rz1 * sinPitch
+    val rz2 = ry1 * sinPitch + rz1 * cosPitch
+
+    // 3. 透视投影
+    val depth = camera.z - rz2
+    if (depth <= camera.near) return null
+
+    val halfH = tan(camera.fov / 2f)
+    val scale = 1f / (halfH * depth)
+
+    val screenX = rx2 * scale * (canvasH / 2f) + canvasW / 2f
+    val screenY = -ry2 * scale * (canvasH / 2f) + canvasH / 2f
+
+    return Offset(screenX, screenY)
+}
+
+/**
  * 根据深度计算投影后的粒子视觉大小（近大远小）。
  *
  * @param originalSize 粒子原始大小（px）
@@ -52,6 +92,31 @@ fun projectSize(
     canvasH: Float,
 ): Float {
     val depth = camera.z - z
+    if (depth <= camera.near) return 0f
+    val halfH = tan(camera.fov / 2f)
+    val scale = 1f / (halfH * depth)
+    return originalSize * scale * (canvasH / 2f)
+}
+
+/**
+ * 带相机旋转的粒子大小投影。
+ */
+fun projectSizeWithRotation(
+    originalSize: Float,
+    x: Float, y: Float, z: Float,
+    camera: Camera3D,
+    rotation: CameraRotation,
+    canvasH: Float,
+): Float {
+    val cosYaw = cos(rotation.yaw)
+    val sinYaw = sin(rotation.yaw)
+    val rz1 = -x * sinYaw + z * cosYaw
+
+    val cosPitch = cos(rotation.pitch)
+    val sinPitch = sin(rotation.pitch)
+    val rz2 = y * sinPitch + rz1 * cosPitch
+
+    val depth = camera.z - rz2
     if (depth <= camera.near) return 0f
     val halfH = tan(camera.fov / 2f)
     val scale = 1f / (halfH * depth)
