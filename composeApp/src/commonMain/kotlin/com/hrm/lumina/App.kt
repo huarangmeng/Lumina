@@ -229,13 +229,13 @@ private fun ImageParticleScreen(
         pixelData?.let { data ->
             ImageParticleView(
                 pixelData = data,
-                maxParticles = 15000,
+                maxParticles = 20000,
                 particleSize = 0.006f,
-                floatAmplitude = 0.008f,
-                floatSpeed = 0.0005f,
-                depthRange = 1.2f,
+                floatAmplitude = 0.010f,
+                floatSpeed = 0.0004f,
+                depthRange = 1.8f,
                 alphaThreshold = 0.1f,
-                cameraZ = 3.5f,
+                cameraZ = 3.0f,
                 blendMode = ParticleBlendMode.Normal,
                 modifier = Modifier.fillMaxSize(),
             )
